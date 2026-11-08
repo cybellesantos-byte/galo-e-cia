@@ -1,0 +1,6 @@
+# Padroniza quebras de linha entre Windows e Linux
+* text=auto
+# O script mvnw roda em Linux/Docker: precisa de LF
+/backend/mvnw text eol=lf
+# Scripts do Windows precisam de CRLF
+*.cmd text eol=crlf

@@ -1,0 +1,14 @@
+# O que NÃO entra na imagem do Docker.
+
+# Compilação local: a imagem monta o seu próprio .jar.
+target/
+
+# Senhas: nunca dentro da imagem (quem tem a imagem lê tudo o que há nela).
+.env
+.env.*
+
+# Arquivos pessoais e do Git.
+.idea/
+*.iml
+.git/
+.gitignore

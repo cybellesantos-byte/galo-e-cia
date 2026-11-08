@@ -1,0 +1,16 @@
+# Arquivos gerados pela compilação
+backend/target/
+
+# Variáveis de ambiente com senhas — NUNCA versionar
+.env
+
+# Configurações pessoais do IntelliJ
+.idea/
+*.iml
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# Backups locais do banco (contêm dados reais)
+backups/
