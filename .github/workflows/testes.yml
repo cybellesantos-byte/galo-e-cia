@@ -1,0 +1,51 @@
+# O robô de testes do Galo & Cia (CI = integração contínua).
+#
+# A cada PR e a cada envio para a main, o GitHub baixa o código numa máquina Linux
+# emprestada, instala o Java 25 e roda a suíte inteira (281 testes, com PostgreSQL
+# real pelo Testcontainers). Se algum teste falhar, o PR mostra um ✗ vermelho.
+#
+# Não usa NENHUM segredo: os testes sobem o próprio banco descartável, e o .env
+# (que nunca vai para o GitHub) não é necessário.
+
+name: Testes
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# O robô só pode LER o repositório. Se alguém conseguisse enganá-lo, ele não poderia
+# alterar nada. É o princípio do "mínimo necessário".
+permissions:
+  contents: read
+
+# Um commit novo no mesmo PR cancela a execução antiga, para não gastar minutos à toa.
+concurrency:
+  group: testes-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  testes:
+    runs-on: ubuntu-latest
+    # Se travar, para sozinho (e não consome a cota de minutos do mês).
+    timeout-minutes: 20
+    defaults:
+      run:
+        # O projeto Maven fica na pasta backend.
+        working-directory: backend
+    steps:
+      - name: Baixar o código
+        uses: actions/checkout@v4
+
+      - name: Instalar o Java 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          # Guarda as bibliotecas baixadas: as próximas execuções ficam mais rápidas.
+          cache: maven
+
+      # "sh mvnw" e não "./mvnw": no Git o arquivo mvnw não tem permissão de execução.
+      # O -B deixa o texto do log mais limpo (modo "lote", sem barras de progresso).
+      - name: Rodar os testes
+        run: sh mvnw -B test

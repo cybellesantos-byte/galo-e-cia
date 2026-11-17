@@ -1,0 +1,39 @@
+# Banco de dados PostgreSQL do sistema da Pastelaria do Galo e da Peixaria.
+#
+# Subir:   docker compose up -d
+# Parar:   docker compose stop        (os dados continuam no volume)
+#
+# ⚠ NUNCA use "docker compose down -v": o "-v" APAGA o volume com todos os dados.
+
+name: pastelaria-ss
+
+services:
+  db:
+    # Versão exata: todos rodam o mesmo banco. Atualizar é uma decisão consciente.
+    image: postgres:18.6
+    container_name: pastelaria-ss-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-pastelaria}
+      POSTGRES_USER: ${DB_USERNAME:-pastelaria}
+      # Sem valor padrão: se faltar no .env, o compose para com esta mensagem.
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Defina DB_PASSWORD no arquivo .env}
+    ports:
+      # Porta 5435 no Windows -> 5432 dentro do container.
+      # 5432 = PostgreSQL do Windows, 5433 = EduPlanner, 5434 = Vitallis.
+      # "127.0.0.1:" deixa o banco acessível só deste computador, não da rede.
+      - "127.0.0.1:5435:5432"
+    volumes:
+      # No PostgreSQL 18 os dados ficam em /var/lib/postgresql/18/docker,
+      # por isso o volume é montado em /var/lib/postgresql.
+      - pastelaria_ss_dados:/var/lib/postgresql
+    healthcheck:
+      # Considera o banco "saudável" quando ele aceita conexões.
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  # Volume nomeado: os dados sobrevivem a parar, reiniciar ou recriar o container.
+  pastelaria_ss_dados:
